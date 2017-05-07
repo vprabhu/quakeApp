@@ -6,9 +6,10 @@ package com.vhp.quakeapp;
 
 public class Info {
 
-    private float magnitude;
+    private double magnitude;
     private String location;
-    private String date;
+    private long date;
+    private String url;
 
     /**
      * construcutor to get all data
@@ -16,13 +17,14 @@ public class Info {
      * @param locationParam
      * @param dateParam
      */
-    public Info(float magnitudeParam, String locationParam, String dateParam) {
+    public Info(double magnitudeParam, String locationParam, long dateParam , String urlParam) {
         this.magnitude = magnitudeParam;
         this.location = locationParam;
         this.date = dateParam;
+        url = urlParam;
     }
 
-    public float getMagnitude() {
+    public double getMagnitude() {
         return magnitude;
     }
 
@@ -30,7 +32,11 @@ public class Info {
         return location;
     }
 
-    public String getDate() {
+    public long getDate() {
         return date;
+    }
+
+    public String getUrl() {
+        return url;
     }
 }
