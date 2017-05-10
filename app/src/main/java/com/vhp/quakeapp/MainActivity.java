@@ -2,6 +2,7 @@ package com.vhp.quakeapp;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -15,6 +16,12 @@ public class MainActivity extends AppCompatActivity {
 
     private ListView mQuakeListView;
 
+    private List<Info> mInfoList;
+
+
+    private final String URL =
+            "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2014-01-01&endtime=2014-01-02";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
         // dummmy placeolder date
 
-        List<Info> mInfoList = new ArrayList<>();
+        mInfoList = new ArrayList<>();
 
       /*  mInfoList.add(new Info((float) 7.2, "San Francisco" , "Feb 2 , 2016"));
         mInfoList.add(new Info((float) 6.1, "London" , "July 20 , 2015"));
@@ -36,15 +43,10 @@ public class MainActivity extends AppCompatActivity {
         mInfoList.add(new Info((float) 4.9, "Rio de Janeiro" , "Aug 12 , 2012"));
         mInfoList.add(new Info((float) 1.6, "Paris" , "Oct 30 , 2011"));*/
 
-      mInfoList = QueryUtils.extractEarthquakes();
+//      mInfoList = QueryUtils.extractEarthquakes();
 
-        QuakeRowAdapter mQualkeRowAdapter = new QuakeRowAdapter(
-                MainActivity.this ,
-                R.layout.layout_row,
-                mInfoList
-        );
+        new EarthquakeAsyncTask().execute(URL);
 
-        mQuakeListView.setAdapter(mQualkeRowAdapter);
 
         final List<Info> finalMInfoList = mInfoList;
         mQuakeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -56,5 +58,30 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+
+    private class EarthquakeAsyncTask  extends AsyncTask<String , Void , List<Info>>{
+
+        @Override
+        protected List<Info> doInBackground(String... params) {
+
+            mInfoList = QueryUtils.fetchEarthquakeData(params[0]);
+
+            return mInfoList;
+        }
+
+        @Override
+        protected void onPostExecute(List<Info> infos) {
+            super.onPostExecute(infos);
+            QuakeRowAdapter mQualkeRowAdapter = new QuakeRowAdapter(
+                    MainActivity.this ,
+                    R.layout.layout_row,
+                    infos
+            );
+
+            mQuakeListView.setAdapter(mQualkeRowAdapter);
+
+        }
     }
 }

@@ -148,6 +148,9 @@ public class QuakeRowAdapter extends ArrayAdapter<Info> {
             case 10:
                 magnitudeResourceId = R.color.magnitude10plus;
                 break;
+            default:
+                magnitudeResourceId = R.color.magnitude10plus;
+                break;
 
         }
         return ContextCompat.getColor(getContext() , magnitudeResourceId);
