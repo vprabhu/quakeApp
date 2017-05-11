@@ -1,22 +1,37 @@
 package com.vhp.quakeapp;
 
+import android.app.LoaderManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.Loader;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Info>>{
 
     private ListView mQuakeListView;
 
     private List<Info> mInfoList;
+
+    private QuakeRowAdapter mQuakeRowAdapter;
+
+    private static final String TAG = "MainActivity";
+
+    private TextView mEmptyTextView;
+    private ProgressBar mProgressBar;
 
 
     private final String URL =
@@ -30,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
         // ui typecasting
 
         mQuakeListView = (ListView) findViewById(R.id.listView_quake);
+        mEmptyTextView = (TextView) findViewById(R.id.textview_empty);
+        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        mQuakeListView.setEmptyView(mEmptyTextView);
 
         // dummmy placeolder date
 
@@ -45,7 +63,18 @@ public class MainActivity extends AppCompatActivity {
 
 //      mInfoList = QueryUtils.extractEarthquakes();
 
-        new EarthquakeAsyncTask().execute(URL);
+//        new EarthquakeAsyncTask().execute(URL);
+
+        mQuakeRowAdapter = new QuakeRowAdapter(
+                MainActivity.this ,
+                R.layout.layout_row,
+                mInfoList
+        );
+
+        mQuakeListView.setAdapter(mQuakeRowAdapter);
+
+        getLoaderManager().initLoader(1 , null , MainActivity.this);
+        Log.d(TAG, "onCreate: after initloader");
 
 
         final List<Info> finalMInfoList = mInfoList;
@@ -58,6 +87,30 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    @Override
+    public Loader<List<Info>> onCreateLoader(int id, Bundle args) {
+        Log.d(TAG, "onCreateLoader: method hit");
+        return new EarthquakeLoader(MainActivity.this);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Info>> loader, List<Info> data) {
+        Log.d(TAG, "onLoadFinished: ");
+        // Set empty state text to display "No earthquakes found."
+//        mEmptyTextView.setText("Earthquakes are not found");
+        mQuakeRowAdapter.clear();
+        if(!data.isEmpty() && data !=null){
+            mQuakeRowAdapter.addAll(data);
+            mProgressBar.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<Info>> loader) {
+        Log.d(TAG, "onLoaderReset: ");
+        mQuakeRowAdapter.clear();
     }
 
 
@@ -82,6 +135,18 @@ public class MainActivity extends AppCompatActivity {
 
             mQuakeListView.setAdapter(mQualkeRowAdapter);
 
+        }
+    }
+
+
+    private boolean checkNetworkStatus(){
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if(networkInfo.isConnected()){
+            return true;
+        }else {
+            return false;
         }
     }
 }
